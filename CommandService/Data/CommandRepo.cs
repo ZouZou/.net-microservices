@@ -12,7 +12,8 @@ namespace CommandService.Data
         {
             _context = context;
         }
-        void ICommandRepo.CreateCommand(int platformId, Command command)
+        
+        public void CreateCommand(int platformId, Command command)
         {
             if (command == null)
             {
@@ -22,7 +23,7 @@ namespace CommandService.Data
             _context.Commands.Add(command);
         }
 
-        void ICommandRepo.CreatePlatform(Platform plat)
+        public void CreatePlatform(Platform plat)
         {
             if (plat == null)
             {
@@ -31,30 +32,35 @@ namespace CommandService.Data
             _context.Platforms.Add(plat);
         }
 
-        IEnumerable<Platform> ICommandRepo.GetAllPlatforms()
+        public bool ExternalPlatformExists(int externalPlatformId)
+        {
+            return _context.Platforms.Any(p => p.ExternalId == externalPlatformId);
+        }
+
+        public IEnumerable<Platform> GetAllPlatforms()
         {
             return _context.Platforms.ToList();
         }
 
-        Command ICommandRepo.GetCommand(int platformId, int commandId)
+        public Command GetCommand(int platformId, int commandId)
         {
             return _context.Commands
                     .Where(c => c.PlatformId == platformId && c.Id == commandId).FirstOrDefault();
         }
 
-        IEnumerable<Command> ICommandRepo.GetCommandsForPlatform(int platformId)
+        public IEnumerable<Command> GetCommandsForPlatform(int platformId)
         {
             return _context.Commands
                     .Where(c => c.PlatformId == platformId)
                     .OrderBy(c => c.Platform.Name);
         }
 
-        bool ICommandRepo.PlatformExists(int platformId)
+        public bool PlatformExists(int platformId)
         {
             return _context.Platforms.Any(p => p.Id == platformId);
         }
 
-        bool ICommandRepo.SaveChanges()
+        public bool SaveChanges()
         {
             return (_context.SaveChanges() >= 0);
         }
