@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AutoMapper;
 using CommandService.Data;
 using CommandService.Dtos;
@@ -19,14 +20,14 @@ namespace CommandService.Controllers
         {
             _repository = repository;
             _mapper = mapper;
-        }   
+        }
 
         [HttpGet]
-        public ActionResult<IEnumerable<PlatformReadDto>> GetPlatforms()
+        public async Task<ActionResult<IEnumerable<PlatformReadDto>>> GetPlatforms([FromQuery] int? skip = null, [FromQuery] int? take = null)
         {
             Console.WriteLine("--> Getting Platforms from CommandService");
 
-            var platformItems = _repository.GetAllPlatforms();
+            var platformItems = await _repository.GetAllPlatformsAsync(skip, take);
             return Ok(_mapper.Map<IEnumerable<PlatformReadDto>>(platformItems));
         }
         

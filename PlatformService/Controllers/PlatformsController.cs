@@ -33,18 +33,18 @@ namespace PlatformService.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<PlatformReadDto>> GetPlatforms()
+        public async Task<ActionResult<IEnumerable<PlatformReadDto>>> GetPlatforms([FromQuery] int? skip = null, [FromQuery] int? take = null)
         {
             Console.WriteLine("--> Getting Platforms...");
-            var platformItems = _repository.GetAllPlatforms();
+            var platformItems = await _repository.GetAllPlatformsAsync(skip, take);
             return Ok(_mapper.Map<IEnumerable<PlatformReadDto>>(platformItems));
         }
 
         [HttpGet("{id}", Name = "GetPlatformById")]
-        public ActionResult<PlatformReadDto> GetPlatformById(int id)
+        public async Task<ActionResult<PlatformReadDto>> GetPlatformById(int id)
         {
             Console.WriteLine("--> Getting Platform " + id.ToString() + "...");
-            var platformItem = _repository.GetPlatformById(id);
+            var platformItem = await _repository.GetPlatformByIdAsync(id);
             if (platformItem != null)
             {
                 return Ok(_mapper.Map<PlatformReadDto>(platformItem));
@@ -57,7 +57,7 @@ namespace PlatformService.Controllers
         {
             var platformModel = _mapper.Map<Platform>(platformCreateDto);
             _repository.CreatePlatform(platformModel);
-            _repository.SaveChanges();
+            await _repository.SaveChangesAsync();
 
             var platformReadDto = _mapper.Map<PlatformReadDto>(platformModel);
 

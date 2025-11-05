@@ -1,5 +1,6 @@
 using System;
 using System.Text.Json;
+using System.Threading.Tasks;
 using AutoMapper;
 using CommandService.Data;
 using CommandService.Dtos;
@@ -23,10 +24,11 @@ namespace CommandService.EventProcessing
         {
             var eventType = DetermineEvent(message);
 
-            switch(eventType) 
+            switch(eventType)
             {
                 case EventType.PlatformPublished:
-                    AddPlatform(message);
+                    // Fire and forget - async void handler
+                    _ = AddPlatformAsync(message);
                     break;
                 default:
                     break;
@@ -49,21 +51,21 @@ namespace CommandService.EventProcessing
             }
         }
 
-        private void AddPlatform(string platformPublishedMessage)
+        private async Task AddPlatformAsync(string platformPublishedMessage)
         {
             using (var scope = _scopeFactory.CreateScope())
             {
                 var repo = scope.ServiceProvider.GetRequiredService<ICommandRepo>();
-                
+
                 var platformPublishedDto = JsonSerializer.Deserialize<PlatformPublishedDto>(platformPublishedMessage);
 
                 try
                 {
                     var plat = _mapper.Map<Platform>(platformPublishedDto);
-                    if (!repo.ExternalPlatformExists(plat.ExternalId))
+                    if (!await repo.ExternalPlatformExistsAsync(plat.ExternalId))
                     {
                         repo.CreatePlatform(plat);
-                        repo.SaveChanges();
+                        await repo.SaveChangesAsync();
                         Console.WriteLine("--> Platform added!");
                     }
                     else
@@ -73,7 +75,7 @@ namespace CommandService.EventProcessing
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"--> Could not add Platfrom to DB {ex.Message}");
+                    Console.WriteLine($"--> Could not add Platform to DB {ex.Message}");
                 }
             }
         }

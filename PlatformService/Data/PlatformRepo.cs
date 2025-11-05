@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using PlatformService.Models;
 
-namespace PlatformService.Data 
+namespace PlatformService.Data
 {
     public class PlatformRepo : IPlatformRepo
     {
-        public readonly AppDbContext _context;
+        private readonly AppDbContext _context;
 
         public PlatformRepo(AppDbContext context)
         {
@@ -23,19 +25,31 @@ namespace PlatformService.Data
             _context.Platforms.Add(plat);
         }
 
-        public IEnumerable<Platform> GetAllPlatforms()
+        public async Task<IEnumerable<Platform>> GetAllPlatformsAsync(int? skip = null, int? take = null)
         {
-            return _context.Platforms.ToList();
+            var query = _context.Platforms.AsQueryable();
+
+            if (skip.HasValue)
+            {
+                query = query.Skip(skip.Value);
+            }
+
+            if (take.HasValue)
+            {
+                query = query.Take(take.Value);
+            }
+
+            return await query.ToListAsync();
         }
 
-        public Platform GetPlatformById(int id)
+        public async Task<Platform> GetPlatformByIdAsync(int id)
         {
-            return _context.Platforms.FirstOrDefault(p => p.Id == id);
+            return await _context.Platforms.FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public bool SaveChanges()
+        public async Task<bool> SaveChangesAsync()
         {
-            return (_context.SaveChanges() >= 0);
+            return (await _context.SaveChangesAsync() >= 0);
         }
     }
 }

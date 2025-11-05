@@ -21,7 +21,7 @@ namespace PlatformService.Data
         {
             if (isProd)
             {
-                Console.WriteLine("--> Attemting to apply migrations...");
+                Console.WriteLine("--> Attempting to apply migrations...");
                 try
                 {
                     context.Database.Migrate();
