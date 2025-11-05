@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using CommandService.Models;
 
 namespace CommandService.Data
@@ -12,7 +14,7 @@ namespace CommandService.Data
         {
             _context = context;
         }
-        
+
         public void CreateCommand(int platformId, Command command)
         {
             if (command == null)
@@ -32,37 +34,51 @@ namespace CommandService.Data
             _context.Platforms.Add(plat);
         }
 
-        public bool ExternalPlatformExists(int externalPlatformId)
+        public async Task<bool> ExternalPlatformExistsAsync(int externalPlatformId)
         {
-            return _context.Platforms.Any(p => p.ExternalId == externalPlatformId);
+            return await _context.Platforms.AnyAsync(p => p.ExternalId == externalPlatformId);
         }
 
-        public IEnumerable<Platform> GetAllPlatforms()
+        public async Task<IEnumerable<Platform>> GetAllPlatformsAsync(int? skip = null, int? take = null)
         {
-            return _context.Platforms.ToList();
+            var query = _context.Platforms.AsQueryable();
+
+            if (skip.HasValue)
+            {
+                query = query.Skip(skip.Value);
+            }
+
+            if (take.HasValue)
+            {
+                query = query.Take(take.Value);
+            }
+
+            return await query.ToListAsync();
         }
 
-        public Command GetCommand(int platformId, int commandId)
+        public async Task<Command> GetCommandAsync(int platformId, int commandId)
         {
-            return _context.Commands
-                    .Where(c => c.PlatformId == platformId && c.Id == commandId).FirstOrDefault();
+            return await _context.Commands
+                    .Where(c => c.PlatformId == platformId && c.Id == commandId).FirstOrDefaultAsync();
         }
 
-        public IEnumerable<Command> GetCommandsForPlatform(int platformId)
+        public async Task<IEnumerable<Command>> GetCommandsForPlatformAsync(int platformId)
         {
-            return _context.Commands
+            return await _context.Commands
+                    .Include(c => c.Platform)
                     .Where(c => c.PlatformId == platformId)
-                    .OrderBy(c => c.Platform.Name);
+                    .OrderBy(c => c.Platform.Name)
+                    .ToListAsync();
         }
 
-        public bool PlatformExists(int platformId)
+        public async Task<bool> PlatformExistsAsync(int platformId)
         {
-            return _context.Platforms.Any(p => p.Id == platformId);
+            return await _context.Platforms.AnyAsync(p => p.Id == platformId);
         }
 
-        public bool SaveChanges()
+        public async Task<bool> SaveChangesAsync()
         {
-            return (_context.SaveChanges() >= 0);
+            return (await _context.SaveChangesAsync() >= 0);
         }
     }
 }

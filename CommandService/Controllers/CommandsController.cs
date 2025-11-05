@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AutoMapper;
 using CommandService.Data;
 using CommandService.Dtos;
@@ -23,43 +24,43 @@ namespace CommandService.Controllers
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<CommandReadDto>> GetCommandsForPlatform(int platformId)
+        public async Task<ActionResult<IEnumerable<CommandReadDto>>> GetCommandsForPlatform(int platformId)
         {
             Console.WriteLine($"--> Hit GetCommandsForPlatform: {platformId}");
 
-            if (!_repository.PlatformExists(platformId))
+            if (!await _repository.PlatformExistsAsync(platformId))
             {
                 return NotFound();
             }
 
-            var commands = _repository.GetCommandsForPlatform(platformId);
+            var commands = await _repository.GetCommandsForPlatformAsync(platformId);
             return Ok(_mapper.Map<IEnumerable<CommandReadDto>>(commands));
         }
 
         [HttpGet("{commandId}", Name = "GetCommandForPlatform")]
-        public ActionResult<CommandReadDto> GetCommandForPlatform(int platformId, int commandId) 
+        public async Task<ActionResult<CommandReadDto>> GetCommandForPlatform(int platformId, int commandId)
         {
            Console.WriteLine($"--> Hit GetCommandForPlatform: {platformId} / {commandId}");
 
-            if (!_repository.PlatformExists(platformId))
+            if (!await _repository.PlatformExistsAsync(platformId))
             {
                 return NotFound();
             }
-            
-            var command = _repository.GetCommand(platformId, commandId);
+
+            var command = await _repository.GetCommandAsync(platformId, commandId);
             if (command == null)
             {
                 return NotFound();
             }
             return Ok(_mapper.Map<CommandReadDto>(command));
         }
-    
-        [HttpPost]
-        public ActionResult<CommandReadDto> CreateCommandForPlatfrom(int platformId, CommandCreateDto commandDto)
-        {
-           Console.WriteLine($"--> Hit CreateCommandForPlatfrom: {platformId}");
 
-            if (!_repository.PlatformExists(platformId))
+        [HttpPost]
+        public async Task<ActionResult<CommandReadDto>> CreateCommandForPlatform(int platformId, CommandCreateDto commandDto)
+        {
+           Console.WriteLine($"--> Hit CreateCommandForPlatform: {platformId}");
+
+            if (!await _repository.PlatformExistsAsync(platformId))
             {
                 return NotFound();
             }
@@ -67,7 +68,7 @@ namespace CommandService.Controllers
             var command = _mapper.Map<Command>(commandDto);
 
             _repository.CreateCommand(platformId, command);
-            _repository.SaveChanges();
+            await _repository.SaveChangesAsync();
 
             var commandReadDto = _mapper.Map<CommandReadDto>(command);
             return CreatedAtRoute(nameof(GetCommandForPlatform),

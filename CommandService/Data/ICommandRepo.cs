@@ -1,21 +1,22 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CommandService.Models;
 
 namespace CommandService.Data
 {
     public interface ICommandRepo
     {
-        bool SaveChanges();
+        Task<bool> SaveChangesAsync();
 
         // Platforms
-        IEnumerable<Platform> GetAllPlatforms();
+        Task<IEnumerable<Platform>> GetAllPlatformsAsync(int? skip = null, int? take = null);
         void CreatePlatform(Platform plat);
-        bool PlatformExists(int platformId);
-        bool ExternalPlatformExists(int externalPlatfromId);
+        Task<bool> PlatformExistsAsync(int platformId);
+        Task<bool> ExternalPlatformExistsAsync(int externalPlatfromId);
 
         // Commands
-        IEnumerable<Command> GetCommandsForPlatform(int platformId);
-        Command GetCommand(int platformId, int commandId);
+        Task<IEnumerable<Command>> GetCommandsForPlatformAsync(int platformId);
+        Task<Command> GetCommandAsync(int platformId, int commandId);
         void CreateCommand(int platformId, Command command);
     }
 }
